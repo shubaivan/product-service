@@ -1,0 +1,9 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: Product Service
+            description: Manages products. Publishes ProductSyncMessage on create/update.
+            version: 1.0.0
+    areas:
+        path_patterns:
+            - ^/products
