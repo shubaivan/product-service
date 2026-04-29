@@ -13,6 +13,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Uid\Uuid;
 
 #[Route('/products')]
 class ProductController extends AbstractController
@@ -32,5 +33,31 @@ class ProductController extends AbstractController
         $this->em->flush();
 
         return new JsonResponse(ProductDto::fromEntity($product), 201);
+    }
+
+    #[Route('', methods: ['GET'])]
+    public function list(): JsonResponse
+    {
+        $items = array_map(
+            static fn (Product $p) => ProductDto::fromEntity($p),
+            $this->products->findAll(),
+        );
+
+        return new JsonResponse(['data' => $items]);
+    }
+
+    #[Route('/{id}', methods: ['GET'])]
+    public function show(string $id): JsonResponse
+    {
+        if (!Uuid::isValid($id)) {
+            return new JsonResponse(['error' => 'invalid id'], 400);
+        }
+
+        $product = $this->products->findOneById(Uuid::fromString($id));
+        if (null === $product) {
+            return new JsonResponse(['error' => 'not found'], 404);
+        }
+
+        return new JsonResponse(ProductDto::fromEntity($product));
     }
 }
