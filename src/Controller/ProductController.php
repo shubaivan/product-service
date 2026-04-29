@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Dto\CreateProductRequest;
+use App\Dto\UpdateProductRequest;
 use App\Entity\Product;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -61,6 +62,29 @@ class ProductController extends AbstractController
         if (null === $product) {
             return new JsonResponse(['error' => 'not found'], 404);
         }
+
+        return new JsonResponse(ProductDto::fromEntity($product));
+    }
+
+    #[Route('/{id}', methods: ['PUT'])]
+    public function update(string $id, #[MapRequestPayload] UpdateProductRequest $request): JsonResponse
+    {
+        if (!Uuid::isValid($id)) {
+            return new JsonResponse(['error' => 'invalid id'], 400);
+        }
+
+        $product = $this->products->findOneById(Uuid::fromString($id));
+        if (null === $product) {
+            return new JsonResponse(['error' => 'not found'], 404);
+        }
+
+        $product->setName($request->name);
+        $product->setPrice($request->price);
+        $product->setQuantity($request->quantity);
+
+        $this->em->flush();
+
+        $this->publisher->publish($product);
 
         return new JsonResponse(ProductDto::fromEntity($product));
     }
