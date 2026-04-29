@@ -9,6 +9,7 @@ use App\Entity\Product;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Shared\Dto\ProductDto;
+use Shared\Service\ProductPublisher;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
@@ -21,6 +22,7 @@ class ProductController extends AbstractController
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly ProductRepository $products,
+        private readonly ProductPublisher $publisher,
     ) {
     }
 
@@ -31,6 +33,8 @@ class ProductController extends AbstractController
 
         $this->em->persist($product);
         $this->em->flush();
+
+        $this->publisher->publish($product);
 
         return new JsonResponse(ProductDto::fromEntity($product), 201);
     }
