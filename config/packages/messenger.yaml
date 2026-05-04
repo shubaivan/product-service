@@ -7,8 +7,15 @@ framework:
                     exchange:
                         name: products
                         type: fanout
+                    queues: []
+            order_events:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    exchange:
+                        name: orders
+                        type: fanout
                     queues:
-                        product_sync: ~
+                        product_service_order_placed: ~
 
         routing:
             Shared\Message\ProductSyncMessage: product_sync
