@@ -6,18 +6,100 @@ Part of a four-repo system. See [`tech-task-stack`](https://github.com/shubaivan
 
 ## Endpoints
 
-| Method | Path | Body | Result |
-|---|---|---|---|
-| `POST`  | `/products`      | `{name, price, quantity}` | `201` + `{id, name, price, quantity}` |
-| `GET`   | `/products`      | — | `{data: [...]}` |
-| `GET`   | `/products/{id}` | — | `{id, name, price, quantity}` |
-| `PUT`   | `/products/{id}` | `{name, price, quantity}` | `200` + updated product |
+| Method | Path | Purpose |
+|---|---|---|
+| `POST`  | `/products`      | Create a product |
+| `GET`   | `/products`      | List all products |
+| `GET`   | `/products/{id}` | Show one product |
+| `PUT`   | `/products/{id}` | Update an existing product |
 
 Every successful `POST` and `PUT` publishes a `Shared\Message\ProductSyncMessage` to the `products` fanout exchange (consumed by the order service).
 
 ## Live URL
 
 https://products.shuba.dev — TLS-enabled, hit it directly with `curl`.
+
+## Request / response examples
+
+### POST `/products` — create
+
+Request:
+
+```json
+{
+  "name": "Coffee Mug",
+  "price": 12.99,
+  "quantity": 100
+}
+```
+
+Response — `201 Created`:
+
+```json
+{
+  "id": "d5dad408-01fb-468d-9477-c651ec3ebb55",
+  "name": "Coffee Mug",
+  "price": 12.99,
+  "quantity": 100
+}
+```
+
+### GET `/products` — list
+
+Response — `200 OK`:
+
+```json
+{
+  "data": [
+    {
+      "id": "d5dad408-01fb-468d-9477-c651ec3ebb55",
+      "name": "Coffee Mug",
+      "price": 12.99,
+      "quantity": 100
+    }
+  ]
+}
+```
+
+### GET `/products/{id}` — show
+
+Response — `200 OK`:
+
+```json
+{
+  "id": "d5dad408-01fb-468d-9477-c651ec3ebb55",
+  "name": "Coffee Mug",
+  "price": 12.99,
+  "quantity": 100
+}
+```
+
+Errors: `400` on invalid UUID, `404` if not found.
+
+### PUT `/products/{id}` — update
+
+Request:
+
+```json
+{
+  "name": "Coffee Mug",
+  "price": 14.99,
+  "quantity": 80
+}
+```
+
+Response — `200 OK`:
+
+```json
+{
+  "id": "d5dad408-01fb-468d-9477-c651ec3ebb55",
+  "name": "Coffee Mug",
+  "price": 14.99,
+  "quantity": 80
+}
+```
+
+Errors: `400` on invalid UUID, `404` if not found. Re-publishes a `ProductSyncMessage` so the order-service mirror picks up the new values.
 
 ## Try it
 
